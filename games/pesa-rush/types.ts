@@ -57,7 +57,7 @@ export interface ComboConfig {
   maxMultiplier: number;
 }
 
-export interface MpesaCatchConfig {
+export interface PesaRushConfig {
   roundDurationMs: number;
   lives: number;
   countdownSeconds: number;
@@ -99,7 +99,7 @@ export interface GameResult2P {
 
 /** Bridge between the React wrapper and the Phaser scene. */
 export interface SceneBridge {
-  config: MpesaCatchConfig;
+  config: PesaRushConfig;
   player1Name: string;
   player2Name: string;
   roundDurationMs: number;

@@ -1,8 +1,8 @@
 "use client";
 
 import { useState } from "react";
-import Game from "@/games/mpesa-catch";
-import type { GameResult2P } from "@/games/mpesa-catch/types";
+import Game from "@/games/pesa-rush";
+import type { GameResult2P } from "@/games/pesa-rush/types";
 import { defaultTheme } from "@/lib/theme";
 import {
   Trophy,
@@ -68,15 +68,14 @@ export default function Home() {
         <div className="relative z-10 flex min-h-screen w-full flex-col justify-between px-4 py-8 sm:px-6 sm:py-10 md:px-12 lg:px-16">
           {/* HEADER SECTION */}
           <header className="mx-auto flex w-full max-w-5xl flex-col items-center text-center">
-            <div className="inline-flex items-center gap-2 rounded-full border border-emerald-500/30 bg-emerald-950/50 px-4 py-1.5 text-xs font-semibold uppercase tracking-wider text-emerald-400 backdrop-blur-md">
-              <span className="h-2 w-2 rounded-full bg-emerald-400 animate-pulse" />
-              <Gamepad2 className="w-4 h-4 text-emerald-400" />
+            <div className="inline-flex items-center gap-2 px-4 py-1.5 text-lg font-semibold uppercase tracking-wider text-emerald-400 backdrop-blur-md">
+              {/* <Gamepad2 className="w-8 h-8 text-emerald-400" /> */}
               2-Player Competitive Arcade
             </div>
 
             <h1 className="mt-4 text-3xl sm:text-5xl md:text-6xl lg:text-7xl font-black tracking-tight text-white">
-              M-PESA CATCH{" "}
-              <span className="bg-gradient-to-r from-emerald-400 via-teal-300 to-amber-300 bg-clip-text text-transparent">
+              PESA RUSH{" "}
+              <span className="text-emerald-400 bg-clip-text">
                 SHOWDOWN
               </span>
             </h1>
@@ -96,14 +95,9 @@ export default function Home() {
               <div className="group relative overflow-hidden rounded-2xl border border-cyan-500/20 bg-slate-900/60 p-5 sm:p-7 backdrop-blur-xl transition hover:border-cyan-500/40 shadow-xl shadow-cyan-950/20">
                 <div className="absolute top-0 left-0 right-0 h-1 bg-gradient-to-r from-cyan-500 to-blue-500" />
                 <div className="flex items-center justify-between gap-2 mb-4">
-                  <span className="inline-flex items-center gap-1.5 rounded-md bg-cyan-950/80 px-2.5 py-1 text-xs font-bold uppercase tracking-wider text-cyan-400 border border-cyan-500/30">
-                    <User className="w-3.5 h-3.5" /> Player 1 — Left Arena
+                  <span className="inline-flex items-center gap-1.5 px-2.5 py-1 text-xs font-bold uppercase tracking-wider text-cyan-400">
+                    {/* <User className="w-3.5 h-3.5" /> Player 1 */}
                   </span>
-                  <div className="flex items-center gap-1.5 text-xs font-medium text-slate-400">
-                    <span className="text-slate-500">Keys:</span>
-                    <kbd className="px-1.5 py-0.5 rounded bg-slate-800 border border-slate-700 font-mono text-cyan-300">A</kbd>
-                    <kbd className="px-1.5 py-0.5 rounded bg-slate-800 border border-slate-700 font-mono text-cyan-300">D</kbd>
-                  </div>
                 </div>
 
                 <label className="block text-xs font-semibold uppercase tracking-wider text-slate-400 mb-2">
@@ -120,32 +114,15 @@ export default function Home() {
                     placeholder="Player 1"
                   />
                 </div>
-
-                <div className="mt-4 flex items-center gap-4 text-xs text-slate-400">
-                  <div className="flex items-center gap-1">
-                    <kbd className="px-1.5 py-0.5 rounded bg-slate-800 text-cyan-400 font-mono">A</kbd>
-                    <span>Left</span>
-                  </div>
-                  <div className="flex items-center gap-1">
-                    <kbd className="px-1.5 py-0.5 rounded bg-slate-800 text-cyan-400 font-mono">D</kbd>
-                    <span>Right</span>
-                  </div>
-                  <span className="text-slate-600 ml-auto hidden sm:inline">Or Touch Screen Left</span>
-                </div>
               </div>
 
               {/* PLAYER 2 CARD (ROSE THEME) */}
               <div className="group relative overflow-hidden rounded-2xl border border-rose-500/20 bg-slate-900/60 p-5 sm:p-7 backdrop-blur-xl transition hover:border-rose-500/40 shadow-xl shadow-rose-950/20">
                 <div className="absolute top-0 left-0 right-0 h-1 bg-gradient-to-r from-rose-500 to-amber-500" />
                 <div className="flex items-center justify-between gap-2 mb-4">
-                  <span className="inline-flex items-center gap-1.5 rounded-md bg-rose-950/80 px-2.5 py-1 text-xs font-bold uppercase tracking-wider text-rose-400 border border-rose-500/30">
-                    <User className="w-3.5 h-3.5" /> Player 2 — Right Arena
+                  <span className="inline-flex items-center gap-1.5 px-2.5 py-1 text-xs font-bold uppercase tracking-wider text-rose-400">
+                    {/* <User className="w-3.5 h-3.5" /> Player 2 */}
                   </span>
-                  <div className="flex items-center gap-1.5 text-xs font-medium text-slate-400">
-                    <span className="text-slate-500">Keys:</span>
-                    <kbd className="px-1.5 py-0.5 rounded bg-slate-800 border border-slate-700 font-mono text-rose-300">←</kbd>
-                    <kbd className="px-1.5 py-0.5 rounded bg-slate-800 border border-slate-700 font-mono text-rose-300">→</kbd>
-                  </div>
                 </div>
 
                 <label className="block text-xs font-semibold uppercase tracking-wider text-slate-400 mb-2">
@@ -162,42 +139,27 @@ export default function Home() {
                     placeholder="Player 2"
                   />
                 </div>
-
-                <div className="mt-4 flex items-center gap-4 text-xs text-slate-400">
-                  <div className="flex items-center gap-1">
-                    <kbd className="px-1.5 py-0.5 rounded bg-slate-800 text-rose-400 font-mono">
-                      <ArrowLeft className="w-3 h-3 inline" />
-                    </kbd>
-                    <span>Left</span>
-                  </div>
-                  <div className="flex items-center gap-1">
-                    <kbd className="px-1.5 py-0.5 rounded bg-slate-800 text-rose-400 font-mono">
-                      <ArrowRight className="w-3 h-3 inline" />
-                    </kbd>
-                    <span>Right</span>
-                  </div>
-                  <span className="text-slate-600 ml-auto hidden sm:inline">Or Touch Screen Right</span>
-                </div>
               </div>
             </div>
 
-            {/* DURATION & CTA CONTROLS */}
-            <div className="flex flex-col sm:flex-row items-center justify-between gap-5 rounded-2xl border border-slate-800 bg-slate-900/80 p-5 sm:p-6 backdrop-blur-xl">
-              <div className="flex items-center gap-3 w-full sm:w-auto justify-between sm:justify-start">
-                <div className="flex items-center gap-2 text-xs font-bold uppercase tracking-wider text-slate-400">
-                  <Timer className="w-4 h-4 text-amber-400" />
-                  <span>Match Time:</span>
-                </div>
-                <div className="flex gap-2">
-                  {[30, 45, 60].map((sec) => (
+            {/* DURATION & START ROW */}
+            <div className="flex flex-col sm:flex-row items-center justify-between gap-4 rounded-2xl border border-slate-800/60 bg-slate-900/40 p-4 sm:p-5 backdrop-blur-md">
+              {/* DURATION SELECTOR */}
+              <div className="flex items-center gap-3">
+                <Timer className="w-4 h-4 text-slate-400 shrink-0" />
+                <span className="text-xs font-semibold uppercase tracking-wider text-slate-400 mr-1">
+                  Duration:
+                </span>
+                <div className="flex gap-1.5">
+                  {[30, 45, 60, 90].map((sec) => (
                     <button
                       key={sec}
                       type="button"
                       onClick={() => setRoundDurationSec(sec)}
-                      className={`rounded-lg px-3.5 py-2 text-xs font-bold transition ${
+                      className={`rounded-lg px-3 py-1.5 text-xs font-bold transition ${
                         roundDurationSec === sec
-                          ? "bg-amber-400 text-slate-950 shadow-md shadow-amber-400/20 font-extrabold"
-                          : "bg-slate-800/90 text-slate-300 hover:bg-slate-700"
+                          ? "bg-emerald-500 text-slate-950 shadow-md shadow-emerald-500/20"
+                          : "bg-slate-800 text-slate-400 hover:bg-slate-700 hover:text-slate-200"
                       }`}
                     >
                       {sec}s
@@ -206,19 +168,19 @@ export default function Home() {
                 </div>
               </div>
 
+              {/* START BUTTON */}
               <button
                 type="submit"
-                className="w-full sm:w-auto inline-flex items-center justify-center gap-3 rounded-xl bg-emerald-500 hover:bg-emerald-400 px-8 py-4 text-base font-extrabold text-slate-950 shadow-lg shadow-emerald-500/25 transition active:scale-95"
+                className="w-full sm:w-auto inline-flex items-center justify-center gap-2 rounded-xl bg-emerald-500 hover:bg-emerald-400 active:bg-emerald-600 px-8 py-3.5 text-base font-extrabold text-slate-950 shadow-lg shadow-emerald-500/30 transition active:scale-95"
               >
                 <Play className="w-5 h-5 fill-current" />
-                <span>START SHOWDOWN</span>
+                START
               </button>
             </div>
           </form>
 
           {/* FOOTER */}
-          <footer className="mx-auto text-center text-xs text-slate-500 py-2">
-            Supports Keyboard Controls & Dual Touch Controls • Works on Mobile, Tablet & Kiosk
+          <footer className="mx-auto w-full max-w-5xl text-center text-xs text-slate-600">
           </footer>
         </div>
       ) : (
@@ -235,18 +197,18 @@ export default function Home() {
             onGameOver2P={(res) => setResult2P(res)}
           />
 
-          {/* WINNER CEREMONY OVERLAY (SCROLLABLE ON SHORT SCREENS) */}
+          {/* WINNER CEREMONY OVERLAY */}
           {result2P && (
-            <div className="fixed inset-0 z-50 overflow-y-auto bg-slate-950/85 backdrop-blur-xl p-4 sm:p-6 flex items-center justify-center animate-fade-in">
-              <div className="w-full max-w-3xl my-auto rounded-3xl border border-slate-700/60 bg-slate-900/95 p-6 sm:p-8 text-center shadow-2xl">
-                {/* WINNER HEADER */}
-                <div className="flex flex-col items-center justify-center gap-2 mb-6">
+            <div className="absolute inset-0 z-50 flex items-center justify-center bg-black/80 p-4 backdrop-blur-xl animate-fade-in overflow-y-auto">
+              <div className="my-auto w-full max-w-2xl rounded-2xl border border-slate-800 bg-slate-900/95 p-6 sm:p-8 text-center shadow-2xl">
+                {/* WINNER BANNER */}
+                <div className="flex flex-col items-center gap-3 mb-6">
                   {result2P.winner === "tie" ? (
                     <>
-                      <div className="p-3 rounded-full bg-slate-800 border border-slate-700">
+                      <div className="p-3 rounded-full bg-amber-400/10 border border-amber-400/30">
                         <Scale className="w-10 h-10 text-amber-400" />
                       </div>
-                      <h2 className="text-3xl sm:text-5xl font-extrabold text-amber-300">
+                      <h2 className="text-3xl sm:text-5xl font-black tracking-tight text-amber-300">
                         IT&apos;S A DRAW!
                       </h2>
                       <p className="text-xs uppercase tracking-wider text-slate-400">Equal Points Scored</p>

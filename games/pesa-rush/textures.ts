@@ -1,7 +1,7 @@
 import * as Phaser from "phaser";
 import type { ThemeConfig } from "@/lib/theme";
 import { GAME_HEIGHT, GAME_WIDTH, backgroundGradient, hexToNumber, mixColors, resolveColor } from "./logic";
-import type { ItemDef, MpesaCatchConfig } from "./types";
+import type { ItemDef, PesaRushConfig } from "./types";
 
 const S = 128; // item texture size
 export const BASKET_TEX_W = 260;
@@ -53,36 +53,68 @@ function drawItem(g: Gfx, item: ItemDef, color: string): void {
 }
 
 function drawBasket(g: Gfx, color: string, accent: string): void {
-  const body = mixColors(color, "#ffffff", 0.82);
-  const weave = mixColors(color, "#ffffff", 0.55);
-  g.fillStyle(n(body), 1).fillPoints(
-    [
-      { x: 14, y: 24 },
-      { x: BASKET_TEX_W - 14, y: 24 },
-      { x: BASKET_TEX_W - 52, y: BASKET_TEX_H - 6 },
-      { x: 52, y: BASKET_TEX_H - 6 },
-    ],
-    true,
-  );
-  g.lineStyle(5, n(weave), 1);
-  for (let i = 1; i < 4; i++) {
-    const y = 24 + i * 29;
-    g.lineBetween(14 + i * 9, y, BASKET_TEX_W - 14 - i * 9, y);
-  }
+  const W = BASKET_TEX_W;
+  const H = BASKET_TEX_H;
+
+  // Trapezoid body points (wider at top, narrower at bottom)
+  const body = [
+    { x: 8, y: 30 },
+    { x: W - 8, y: 30 },
+    { x: W - 44, y: H - 4 },
+    { x: 44, y: H - 4 },
+  ];
+
+  // Deep shadow layer (slightly wider, dark)
+  const shadow = [
+    { x: 10, y: 33 },
+    { x: W - 10, y: 33 },
+    { x: W - 42, y: H },
+    { x: 42, y: H },
+  ];
+  g.fillStyle(0x000000, 0.35).fillPoints(shadow, true);
+
+  // Main basket body — light tinted fill
+  const bodyColor = mixColors(color, "#ffffff", 0.78);
+  g.fillStyle(n(bodyColor), 1).fillPoints(body, true);
+
+  // Inner shading gradient (darker bottom band for depth)
+  const shadeBot = [
+    { x: 50, y: H - 38 },
+    { x: W - 50, y: H - 38 },
+    { x: W - 44, y: H - 4 },
+    { x: 44, y: H - 4 },
+  ];
+  g.fillStyle(n(mixColors(color, "#000000", 0.18)), 0.55).fillPoints(shadeBot, true);
+
+  // Subtle vertical ribs
+  const ribColor = mixColors(color, "#000000", 0.22);
+  g.lineStyle(2, n(ribColor), 0.45);
   for (let i = 1; i < 6; i++) {
-    const topX = 14 + (i * (BASKET_TEX_W - 28)) / 6;
-    const botX = 52 + (i * (BASKET_TEX_W - 104)) / 6;
-    g.lineBetween(topX, 26, botX, BASKET_TEX_H - 8);
+    const tx = 8 + (i * (W - 16)) / 6;
+    const bx = 44 + (i * (W - 88)) / 6;
+    g.lineBetween(tx, 32, bx, H - 5);
   }
-  g.fillStyle(n(accent), 1).fillRoundedRect(0, 6, BASKET_TEX_W, 30, 15);
-  g.fillStyle(0xffffff, 0.35).fillRoundedRect(14, 12, BASKET_TEX_W - 28, 7, 3);
+
+  // Horizontal weave lines
+  g.lineStyle(2, n(ribColor), 0.3);
+  for (let i = 1; i < 4; i++) {
+    const t = i / 4;
+    const y = 30 + t * (H - 30);
+    const xl = 8 + t * 36;
+    const xr = W - 8 - t * 36;
+    g.lineBetween(xl, y, xr, y);
+  }
+
+  // Bright colored rim (rounded pill on top)
+  g.fillStyle(n(accent), 1).fillRoundedRect(0, 8, W, 32, 14);
+
+  // Gloss on the rim
+  g.fillStyle(0xffffff, 0.3).fillRoundedRect(16, 12, W - 32, 10, 6);
 }
 
-function drawHeart(g: Gfx, color: string): void {
-  g.fillStyle(n(color), 1);
-  g.fillCircle(36, 38, 28).fillCircle(76, 38, 28).fillTriangle(10, 52, 102, 52, 56, 104);
-  g.fillStyle(0xffffff, 0.45).fillCircle(26, 28, 8);
-}
+
+
+
 
 function make(scene: Phaser.Scene, key: string, w: number, h: number, draw: (g: Gfx) => void): void {
   if (scene.textures.exists(key)) scene.textures.remove(key);
@@ -93,7 +125,7 @@ function make(scene: Phaser.Scene, key: string, w: number, h: number, draw: (g: 
 }
 
 /** Builds every texture from code. A texture loaded from an imageUrl is kept as is. */
-export function buildTextures(scene: Phaser.Scene, theme: ThemeConfig, config: MpesaCatchConfig): void {
+export function buildTextures(scene: Phaser.Scene, theme: ThemeConfig, config: PesaRushConfig): void {
   for (const item of config.items) {
     const key = `item:${item.id}`;
     if (item.imageUrl && scene.textures.exists(key)) continue;
@@ -111,7 +143,6 @@ export function buildTextures(scene: Phaser.Scene, theme: ThemeConfig, config: M
     drawBasket(g, resolveColor(config.basket.color, theme), "#FF3366"),
   );
 
-  make(scene, "life", 112, 112, (g) => drawHeart(g, config.lifeColor));
   make(scene, "spark", 24, 24, (g) => g.fillStyle(0xffffff, 1).fillCircle(12, 12, 10));
 
   const { top, bottom } = backgroundGradient(theme.primaryColor);

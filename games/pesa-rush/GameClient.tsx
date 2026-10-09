@@ -5,7 +5,7 @@ import { useEffect, useRef } from "react";
 import type { GameProps } from "@/lib/game";
 import config from "./config";
 import { GAME_HEIGHT, GAME_WIDTH, backgroundGradient } from "./logic";
-import { MpesaCatchScene } from "./MpesaCatchScene";
+import { PesaRushScene } from "./PesaRushScene";
 import type { GameResult2P } from "./types";
 
 export interface GameClientProps extends GameProps {
@@ -48,7 +48,7 @@ export default function GameClient({
       render: { antialias: true, powerPreference: "high-performance" },
       input: { activePointers: 4, touch: { capture: true } },
       scale: { mode: Phaser.Scale.FIT, autoCenter: Phaser.Scale.CENTER_BOTH },
-      scene: new MpesaCatchScene({
+      scene: new PesaRushScene({
         config,
         player1Name: latest.current.player1Name,
         player2Name: latest.current.player2Name,

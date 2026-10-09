@@ -9,7 +9,7 @@ const outfit = Outfit({
 });
 
 export const metadata: Metadata = {
-  title: "M-Pesa Catch Showdown",
+  title: "Pesa Rush Showdown",
   description: "A fast-paced 2-player arcade showdown game.",
 };
 
@@ -30,4 +30,3 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
     </html>
   );
 }
-

@@ -19,7 +19,9 @@ import {
   hexToNumber,
   isCaught,
   isMissed,
+  isRoundOver,
   nextSpawnDelay,
+  parseHex,
   pickItem,
   resolveColor,
   secondsLeft,
@@ -29,7 +31,7 @@ import {
   type Rng,
   type RoundState,
 } from "./logic";
-import type { GameResult2P, ItemDef, MpesaCatchConfig, SceneBridge } from "./types";
+import type { GameResult2P, ItemDef, PesaRushConfig, SceneBridge } from "./types";
 
 type Phase = "ready" | "countdown" | "playing" | "ending";
 
@@ -69,9 +71,9 @@ const SPARK_POOL = 200;
 const FLOATER_POOL = 30;
 const GRAVITY = 1100;
 
-export class MpesaCatchScene extends Phaser.Scene {
+export class PesaRushScene extends Phaser.Scene {
   private readonly bridge: SceneBridge;
-  private readonly cfg: MpesaCatchConfig;
+  private readonly cfg: PesaRushConfig;
   private readonly rng: Rng = Math.random;
 
   private theme!: ThemeConfig;
@@ -121,8 +123,7 @@ export class MpesaCatchScene extends Phaser.Scene {
   private timerText!: Phaser.GameObjects.Text;
   private leaderText!: Phaser.GameObjects.Text;
   private timerBar!: Phaser.GameObjects.Rectangle;
-  private livesP1Icons: Phaser.GameObjects.Image[] = [];
-  private livesP2Icons: Phaser.GameObjects.Image[] = [];
+
   private hudObjects: Phaser.GameObjects.GameObject[] = [];
 
   private readyLayer!: Phaser.GameObjects.Container;
@@ -138,7 +139,7 @@ export class MpesaCatchScene extends Phaser.Scene {
   private wasdKeys?: { A: Phaser.Input.Keyboard.Key; D: Phaser.Input.Keyboard.Key };
 
   constructor(bridge: SceneBridge) {
-    super("mpesa-catch");
+    super("pesa-rush");
     this.bridge = bridge;
     this.cfg = bridge.config;
     this.p1Name = bridge.player1Name || "Player 1";
@@ -259,53 +260,43 @@ export class MpesaCatchScene extends Phaser.Scene {
     const roundSecs = Math.ceil((this.bridge.roundDurationMs || this.cfg.roundDurationMs) / 1000);
 
     // --- PLAYER 1 HUD (LEFT SIDE) ---
-    const p1Badge = this.add.rectangle(40, 24, 280, 80, 0x001830, 0.75).setOrigin(0, 0);
+    // Badge: x=20, y=10, width=320, height=115
+    const p1Badge = this.add.rectangle(20, 10, 320, 115, 0x001830, 0.85).setOrigin(0, 0);
     p1Badge.setStrokeStyle(3, hexToNumber(PLAYER1_COLOR));
-    const p1Label = this.makeText(54, 34, this.p1Name.toUpperCase(), 26, PLAYER1_COLOR, 0, 0);
-    this.scoreP1Text = this.makeText(54, 62, "0", 52, "#ffffff", 0, 0);
-    this.comboP1Text = this.makeText(230, 68, "", 32, PLAYER1_COLOR, 0, 0).setVisible(false);
-
-    const lives = this.cfg.lives;
-    for (let i = 0; i < lives; i++) {
-      const x = 360 + i * 44;
-      this.livesP1Icons.push(this.add.image(x, 64, "life").setDisplaySize(40, 40));
-    }
+    // Small name label near top of badge
+    const p1Label = this.makeText(180, 28, this.p1Name.toUpperCase(), 22, PLAYER1_COLOR, 0.5, 0);
+    // Big score centered inside the badge
+    this.scoreP1Text = this.makeText(180, 76, "0", 58, "#ffffff", 0.5, 0.5);
+    this.comboP1Text = this.makeText(355, 70, "", 28, PLAYER1_COLOR, 0, 0.5).setVisible(false);
 
     // --- PLAYER 2 HUD (RIGHT SIDE) ---
-    const p2Badge = this.add.rectangle(W - 320, 24, 280, 80, 0x300010, 0.75).setOrigin(0, 0);
+    const p2Badge = this.add.rectangle(W - 340, 10, 320, 115, 0x300010, 0.85).setOrigin(0, 0);
     p2Badge.setStrokeStyle(3, hexToNumber(PLAYER2_COLOR));
-    const p2Label = this.makeText(W - 54, 34, this.p2Name.toUpperCase(), 26, PLAYER2_COLOR, 1, 0);
-    this.scoreP2Text = this.makeText(W - 54, 62, "0", 52, "#ffffff", 1, 0);
-    this.comboP2Text = this.makeText(W - 230, 68, "", 32, PLAYER2_COLOR, 1, 0).setVisible(false);
-
-    for (let i = 0; i < lives; i++) {
-      const x = W - 360 - (lives - 1 - i) * 44;
-      this.livesP2Icons.push(this.add.image(x, 64, "life").setDisplaySize(40, 40));
-    }
+    const p2Label = this.makeText(W - 180, 28, this.p2Name.toUpperCase(), 22, PLAYER2_COLOR, 0.5, 0);
+    this.scoreP2Text = this.makeText(W - 180, 76, "0", 58, "#ffffff", 0.5, 0.5);
+    this.comboP2Text = this.makeText(W - 355, 70, "", 28, PLAYER2_COLOR, 1, 0.5).setVisible(false);
 
     // --- CENTER BROADCAST TOWER ---
-    const timerBg = this.add.rectangle(W / 2, 44, 200, 70, 0x000000, 0.8).setOrigin(0.5, 0.5);
+    const timerBg = this.add.rectangle(W / 2, 46, 160, 74, 0x000000, 0.85).setOrigin(0.5, 0.5);
     timerBg.setStrokeStyle(3, hexToNumber(this.accent));
-    this.timerText = this.makeText(W / 2, 44, String(roundSecs), 54, "#ffffff", 0.5, 0.5);
+    this.timerText = this.makeText(W / 2, 46, String(roundSecs), 56, "#ffffff", 0.5, 0.5);
 
-    const leaderBg = this.add.rectangle(W / 2, 102, 420, 36, 0x000000, 0.7).setOrigin(0.5, 0.5);
-    leaderBg.setStrokeStyle(2, 0xffffff, 0.4);
-    this.leaderText = this.makeText(W / 2, 102, "TIED MATCH", 22, "#ffffff", 0.5, 0.5);
+    const leaderBg = this.add.rectangle(W / 2, 108, 380, 32, 0x000000, 0.7).setOrigin(0.5, 0.5);
+    leaderBg.setStrokeStyle(2, 0xffffff, 0.3);
+    this.leaderText = this.makeText(W / 2, 108, "TIED MATCH", 20, "#ffffff", 0.5, 0.5);
 
-    const barBg = this.add.rectangle(0, 130, W, 10, 0x000000, 0.4).setOrigin(0, 0);
-    this.timerBar = this.add.rectangle(0, 130, W, 10, hexToNumber(this.accent)).setOrigin(0, 0);
+    const barBg = this.add.rectangle(0, 134, W, 8, 0x000000, 0.4).setOrigin(0, 0);
+    this.timerBar = this.add.rectangle(0, 134, W, 8, hexToNumber(this.accent)).setOrigin(0, 0);
 
     this.hudObjects = [
       p1Badge,
       p1Label,
       this.scoreP1Text,
       this.comboP1Text,
-      ...this.livesP1Icons,
       p2Badge,
       p2Label,
       this.scoreP2Text,
       this.comboP2Text,
-      ...this.livesP2Icons,
       timerBg,
       this.timerText,
       leaderBg,
@@ -322,39 +313,40 @@ export class MpesaCatchScene extends Phaser.Scene {
   }
 
   private createReadyLayer(): void {
+    const t = this.cfg.text;
     const layer = this.add.container(0, 0).setDepth(30);
     const dim = this.add.rectangle(0, 0, W, H, 0x000000, 0.5).setOrigin(0, 0);
     layer.add(dim);
 
     // Header Title
-    layer.add(this.makeText(W / 2, 130, "M-PESA CATCH: 2-PLAYER SHOWDOWN", 64, this.accent));
-    layer.add(this.makeText(W / 2, 205, "COMPETITIVE ARCADE EDITION", 28, "#ffffff").setAlpha(0.8));
+    layer.add(this.makeText(W / 2, 130, "PESA RUSH: 2-PLAYER SHOWDOWN", 68, this.accent));
+    layer.add(this.makeText(W / 2, 210, "BIG SCREEN GAMESHOW EDITION", 32, "#ffffff").setAlpha(0.8));
 
     // Player 1 Card (Left)
     const cardP1 = this.add.rectangle(W / 2 - 400, 480, 600, 440, 0x001a35, 0.9);
     cardP1.setStrokeStyle(4, hexToNumber(PLAYER1_COLOR));
     layer.add(cardP1);
-    layer.add(this.makeText(W / 2 - 400, 310, "BLUE TEAM (LEFT)", 30, PLAYER1_COLOR));
-    layer.add(this.makeText(W / 2 - 400, 390, this.p1Name, 54, "#ffffff"));
-    layer.add(this.makeText(W / 2 - 400, 480, "CONTROLS", 22, PLAYER1_COLOR));
-    layer.add(this.makeText(W / 2 - 400, 530, "A / D Keys to Move", 28, "#ffffff"));
-    layer.add(this.makeText(W / 2 - 400, 585, "Or Touch Left Side of Screen", 22, "#ffffff").setAlpha(0.7));
+    layer.add(this.makeText(W / 2 - 400, 310, "BLUE TEAM (LEFT)", 32, PLAYER1_COLOR));
+    layer.add(this.makeText(W / 2 - 400, 390, this.p1Name, 58, "#ffffff"));
+    layer.add(this.makeText(W / 2 - 400, 480, "CONTROLS", 24, PLAYER1_COLOR));
+    layer.add(this.makeText(W / 2 - 400, 530, "[ A ] Move Left  |  [ D ] Move Right", 30, "#ffffff"));
+    layer.add(this.makeText(W / 2 - 400, 590, "Or Touch Left Side of Screen", 24, "#ffffff").setAlpha(0.7));
 
     // Player 2 Card (Right)
     const cardP2 = this.add.rectangle(W / 2 + 400, 480, 600, 440, 0x35001a, 0.9);
     cardP2.setStrokeStyle(4, hexToNumber(PLAYER2_COLOR));
     layer.add(cardP2);
-    layer.add(this.makeText(W / 2 + 400, 310, "RED TEAM (RIGHT)", 30, PLAYER2_COLOR));
-    layer.add(this.makeText(W / 2 + 400, 390, this.p2Name, 54, "#ffffff"));
-    layer.add(this.makeText(W / 2 + 400, 480, "CONTROLS", 22, PLAYER2_COLOR));
-    layer.add(this.makeText(W / 2 + 400, 530, "Left / Right Arrow Keys", 28, "#ffffff"));
-    layer.add(this.makeText(W / 2 + 400, 585, "Or Touch Right Side of Screen", 22, "#ffffff").setAlpha(0.7));
+    layer.add(this.makeText(W / 2 + 400, 310, "RED TEAM (RIGHT)", 32, PLAYER2_COLOR));
+    layer.add(this.makeText(W / 2 + 400, 390, this.p2Name, 58, "#ffffff"));
+    layer.add(this.makeText(W / 2 + 400, 480, "CONTROLS", 24, PLAYER2_COLOR));
+    layer.add(this.makeText(W / 2 + 400, 530, "[ ← ] Move Left  |  [ → ] Move Right", 30, "#ffffff"));
+    layer.add(this.makeText(W / 2 + 400, 590, "Or Touch Right Side of Screen", 24, "#ffffff").setAlpha(0.7));
 
     // Start Button Call To Action
     const roundSecs = Math.round((this.bridge.roundDurationMs || this.cfg.roundDurationMs) / 1000);
-    layer.add(this.makeText(W / 2, 780, `${roundSecs} SECONDS ROUND  •  ${this.cfg.lives} LIVES EACH`, 30, "#ffffff").setAlpha(0.85));
+    layer.add(this.makeText(W / 2, 780, `${roundSecs} SECONDS ROUND  |  ${this.cfg.lives} LIVES EACH`, 32, "#ffffff").setAlpha(0.85));
 
-    this.startText = this.makeText(W / 2, 880, "TAP OR PRESS ANY KEY TO START", 50, this.accent);
+    this.startText = this.makeText(W / 2, 880, "PRESS ANY KEY OR TAP TO START", 54, this.accent);
     layer.add(this.startText);
 
     this.readyLayer = layer;
@@ -418,7 +410,7 @@ export class MpesaCatchScene extends Phaser.Scene {
     this.refreshHud();
   }
 
-  private endRound(): void {
+  private endRound(reason: "time" | "lives"): void {
     if (this.phase === "ending") return;
     this.phase = "ending";
 
@@ -428,9 +420,8 @@ export class MpesaCatchScene extends Phaser.Scene {
     for (const f of this.fallers) if (f.active) this.release(f);
 
     const winnerName = winnerKey === "player1" ? this.p1Name : winnerKey === "player2" ? this.p2Name : "TIE";
-    const bannerStr = winnerKey === "tie" ? "MATCH TIED!" : `${winnerName.toUpperCase()} WINS!`;
+    const bannerStr = winnerKey === "tie" ? "MATCH TIED!" : `🏆 ${winnerName.toUpperCase()} WINS! 🏆`;
     this.banner.setText(bannerStr).setVisible(true);
-
 
     if (winnerKey !== "tie") {
       this.burst(W / 2, H / 2 - 100, hexToNumber(winnerKey === "player1" ? PLAYER1_COLOR : PLAYER2_COLOR), 80);
@@ -581,9 +572,9 @@ export class MpesaCatchScene extends Phaser.Scene {
     const p2Dead = this.stateP2.lives <= 0;
 
     if (p1Dead && p2Dead) {
-      this.endRound();
+      this.endRound("lives");
     } else if (this.elapsed >= roundDuration) {
-      this.endRound();
+      this.endRound("time");
     }
   }
 
@@ -668,6 +659,7 @@ export class MpesaCatchScene extends Phaser.Scene {
       this.burst(x, zone.topY, hexToNumber(this.danger), 24);
       this.floatText(x, zone.topY - 60, String(def.points), this.danger, 68);
       this.sfx.play("fraud");
+      const [r, g, b] = parseHex(this.danger);
       this.cameras.main.shake(200, 0.01);
     }
 
@@ -757,8 +749,7 @@ export class MpesaCatchScene extends Phaser.Scene {
   /* ---------------------------------- HUD --------------------------------- */
 
   private refreshHud(): void {
-    this.livesP1Icons.forEach((icon, i) => icon.setAlpha(i < this.stateP1.lives ? 1 : 0.2));
-    this.livesP2Icons.forEach((icon, i) => icon.setAlpha(i < this.stateP2.lives ? 1 : 0.2));
+
 
     if (this.stateP1.combo >= 2) {
       this.comboP1Text.setText(`x${1 + Math.floor(this.stateP1.combo / this.cfg.combo.step)}`).setVisible(true);

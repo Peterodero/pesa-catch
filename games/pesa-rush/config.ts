@@ -1,10 +1,10 @@
-import type { MpesaCatchConfig } from "./types";
+import type { PesaRushConfig } from "./types";
 
 /**
  * Edit this file to change the game without touching code.
  * Brand colors live in lib/theme.ts; here "primary" and "accent" point to the theme.
  */
-const config: MpesaCatchConfig = {
+const config: PesaRushConfig = {
   roundDurationMs: 60_000, // 30 000 to 90 000 recommended
   lives: 3,
   countdownSeconds: 3,
