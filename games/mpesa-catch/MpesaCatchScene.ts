@@ -19,9 +19,7 @@ import {
   hexToNumber,
   isCaught,
   isMissed,
-  isRoundOver,
   nextSpawnDelay,
-  parseHex,
   pickItem,
   resolveColor,
   secondsLeft,
@@ -292,7 +290,7 @@ export class MpesaCatchScene extends Phaser.Scene {
 
     const leaderBg = this.add.rectangle(W / 2, 102, 420, 36, 0x000000, 0.7).setOrigin(0.5, 0.5);
     leaderBg.setStrokeStyle(2, 0xffffff, 0.4);
-    this.leaderText = this.makeText(W / 2, 102, "⚔️ TIED MATCH", 22, "#ffffff", 0.5, 0.5);
+    this.leaderText = this.makeText(W / 2, 102, "TIED MATCH", 22, "#ffffff", 0.5, 0.5);
 
     const barBg = this.add.rectangle(0, 130, W, 10, 0x000000, 0.4).setOrigin(0, 0);
     this.timerBar = this.add.rectangle(0, 130, W, 10, hexToNumber(this.accent)).setOrigin(0, 0);
@@ -324,40 +322,39 @@ export class MpesaCatchScene extends Phaser.Scene {
   }
 
   private createReadyLayer(): void {
-    const t = this.cfg.text;
     const layer = this.add.container(0, 0).setDepth(30);
     const dim = this.add.rectangle(0, 0, W, H, 0x000000, 0.5).setOrigin(0, 0);
     layer.add(dim);
 
     // Header Title
-    layer.add(this.makeText(W / 2, 130, "M-PESA CATCH: 2-PLAYER SHOWDOWN", 68, this.accent));
-    layer.add(this.makeText(W / 2, 210, "BIG SCREEN GAMESHOW EDITION", 32, "#ffffff").setAlpha(0.8));
+    layer.add(this.makeText(W / 2, 130, "M-PESA CATCH: 2-PLAYER SHOWDOWN", 64, this.accent));
+    layer.add(this.makeText(W / 2, 205, "COMPETITIVE ARCADE EDITION", 28, "#ffffff").setAlpha(0.8));
 
     // Player 1 Card (Left)
     const cardP1 = this.add.rectangle(W / 2 - 400, 480, 600, 440, 0x001a35, 0.9);
     cardP1.setStrokeStyle(4, hexToNumber(PLAYER1_COLOR));
     layer.add(cardP1);
-    layer.add(this.makeText(W / 2 - 400, 310, "BLUE TEAM (LEFT)", 32, PLAYER1_COLOR));
-    layer.add(this.makeText(W / 2 - 400, 390, this.p1Name, 58, "#ffffff"));
-    layer.add(this.makeText(W / 2 - 400, 480, "CONTROLS", 24, PLAYER1_COLOR));
-    layer.add(this.makeText(W / 2 - 400, 530, "[ A ] Move Left  |  [ D ] Move Right", 30, "#ffffff"));
-    layer.add(this.makeText(W / 2 - 400, 590, "Or Touch Left Side of Screen", 24, "#ffffff").setAlpha(0.7));
+    layer.add(this.makeText(W / 2 - 400, 310, "BLUE TEAM (LEFT)", 30, PLAYER1_COLOR));
+    layer.add(this.makeText(W / 2 - 400, 390, this.p1Name, 54, "#ffffff"));
+    layer.add(this.makeText(W / 2 - 400, 480, "CONTROLS", 22, PLAYER1_COLOR));
+    layer.add(this.makeText(W / 2 - 400, 530, "A / D Keys to Move", 28, "#ffffff"));
+    layer.add(this.makeText(W / 2 - 400, 585, "Or Touch Left Side of Screen", 22, "#ffffff").setAlpha(0.7));
 
     // Player 2 Card (Right)
     const cardP2 = this.add.rectangle(W / 2 + 400, 480, 600, 440, 0x35001a, 0.9);
     cardP2.setStrokeStyle(4, hexToNumber(PLAYER2_COLOR));
     layer.add(cardP2);
-    layer.add(this.makeText(W / 2 + 400, 310, "RED TEAM (RIGHT)", 32, PLAYER2_COLOR));
-    layer.add(this.makeText(W / 2 + 400, 390, this.p2Name, 58, "#ffffff"));
-    layer.add(this.makeText(W / 2 + 400, 480, "CONTROLS", 24, PLAYER2_COLOR));
-    layer.add(this.makeText(W / 2 + 400, 530, "[ ← ] Move Left  |  [ → ] Move Right", 30, "#ffffff"));
-    layer.add(this.makeText(W / 2 + 400, 590, "Or Touch Right Side of Screen", 24, "#ffffff").setAlpha(0.7));
+    layer.add(this.makeText(W / 2 + 400, 310, "RED TEAM (RIGHT)", 30, PLAYER2_COLOR));
+    layer.add(this.makeText(W / 2 + 400, 390, this.p2Name, 54, "#ffffff"));
+    layer.add(this.makeText(W / 2 + 400, 480, "CONTROLS", 22, PLAYER2_COLOR));
+    layer.add(this.makeText(W / 2 + 400, 530, "Left / Right Arrow Keys", 28, "#ffffff"));
+    layer.add(this.makeText(W / 2 + 400, 585, "Or Touch Right Side of Screen", 22, "#ffffff").setAlpha(0.7));
 
     // Start Button Call To Action
     const roundSecs = Math.round((this.bridge.roundDurationMs || this.cfg.roundDurationMs) / 1000);
-    layer.add(this.makeText(W / 2, 780, `${roundSecs} SECONDS ROUND  |  ${this.cfg.lives} LIVES EACH`, 32, "#ffffff").setAlpha(0.85));
+    layer.add(this.makeText(W / 2, 780, `${roundSecs} SECONDS ROUND  •  ${this.cfg.lives} LIVES EACH`, 30, "#ffffff").setAlpha(0.85));
 
-    this.startText = this.makeText(W / 2, 880, "PRESS ANY KEY OR TAP TO START", 54, this.accent);
+    this.startText = this.makeText(W / 2, 880, "TAP OR PRESS ANY KEY TO START", 50, this.accent);
     layer.add(this.startText);
 
     this.readyLayer = layer;
@@ -421,7 +418,7 @@ export class MpesaCatchScene extends Phaser.Scene {
     this.refreshHud();
   }
 
-  private endRound(reason: "time" | "lives"): void {
+  private endRound(): void {
     if (this.phase === "ending") return;
     this.phase = "ending";
 
@@ -431,8 +428,9 @@ export class MpesaCatchScene extends Phaser.Scene {
     for (const f of this.fallers) if (f.active) this.release(f);
 
     const winnerName = winnerKey === "player1" ? this.p1Name : winnerKey === "player2" ? this.p2Name : "TIE";
-    const bannerStr = winnerKey === "tie" ? "MATCH TIED!" : `🏆 ${winnerName.toUpperCase()} WINS! 🏆`;
+    const bannerStr = winnerKey === "tie" ? "MATCH TIED!" : `${winnerName.toUpperCase()} WINS!`;
     this.banner.setText(bannerStr).setVisible(true);
+
 
     if (winnerKey !== "tie") {
       this.burst(W / 2, H / 2 - 100, hexToNumber(winnerKey === "player1" ? PLAYER1_COLOR : PLAYER2_COLOR), 80);
@@ -583,9 +581,9 @@ export class MpesaCatchScene extends Phaser.Scene {
     const p2Dead = this.stateP2.lives <= 0;
 
     if (p1Dead && p2Dead) {
-      this.endRound("lives");
+      this.endRound();
     } else if (this.elapsed >= roundDuration) {
-      this.endRound("time");
+      this.endRound();
     }
   }
 
@@ -670,7 +668,6 @@ export class MpesaCatchScene extends Phaser.Scene {
       this.burst(x, zone.topY, hexToNumber(this.danger), 24);
       this.floatText(x, zone.topY - 60, String(def.points), this.danger, 68);
       this.sfx.play("fraud");
-      const [r, g, b] = parseHex(this.danger);
       this.cameras.main.shake(200, 0.01);
     }
 
