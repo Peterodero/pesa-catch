@@ -170,7 +170,8 @@ export class PesaRushScene extends Phaser.Scene {
     this.add.image(W / 2, H / 2, "bg").setDepth(0);
 
     // Player 1 Basket (Left Arena)
-    const texP1 = this.textures.exists("basket_p1") ? "basket_p1" : "basket";
+    const hasImageBasket = Boolean(this.cfg.basket.imageUrl && this.textures.exists("basket"));
+    const texP1 = hasImageBasket ? "basket" : (this.textures.exists("basket_p1") ? "basket_p1" : "basket");
     this.basketP1 = this.add.image(480, BASKET_Y, texP1).setDepth(10);
     this.basketP1.setDisplaySize(BASKET_W, BASKET_H);
     this.zoneP1 = {
@@ -181,7 +182,7 @@ export class PesaRushScene extends Phaser.Scene {
     };
 
     // Player 2 Basket (Right Arena)
-    const texP2 = this.textures.exists("basket_p2") ? "basket_p2" : "basket";
+    const texP2 = hasImageBasket ? "basket" : (this.textures.exists("basket_p2") ? "basket_p2" : "basket");
     this.basketP2 = this.add.image(1440, BASKET_Y, texP2).setDepth(10);
     this.basketP2.setDisplaySize(BASKET_W, BASKET_H);
     this.zoneP2 = {

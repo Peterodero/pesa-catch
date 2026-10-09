@@ -74,7 +74,7 @@ const config: PesaRushConfig = {
 
   combo: { step: 5, maxMultiplier: 5 },
 
-  basket: { color: "primary", followRate: 18 },
+  basket: { color: "primary", followRate: 18, imageUrl: "/assets/pesa-rush/basket.png" },
   dangerColor: "#E5383B",
   lifeColor: "#FF5A6E",
 
