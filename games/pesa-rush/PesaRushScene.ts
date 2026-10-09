@@ -60,12 +60,6 @@ interface Floater {
   maxLife: number;
   vy: number;
 }
-interface BasketItem {
-  sprite: Phaser.GameObjects.Image;
-  offsetX: number;
-  offsetY: number;
-  rotation: number;
-}
 
 const BASKET_W = 220;
 const BASKET_H = 130;
@@ -109,14 +103,12 @@ export class PesaRushScene extends Phaser.Scene {
   private basketP1TargetX = 480;
   private basketP1Pulse = 0;
   private zoneP1!: BasketZone;
-  private basketItemsP1: BasketItem[] = [];
 
   // Player 2 basket & zone
   private basketP2!: Phaser.GameObjects.Image;
   private basketP2TargetX = 1440;
   private basketP2Pulse = 0;
   private zoneP2!: BasketZone;
-  private basketItemsP2: BasketItem[] = [];
 
   // Object pools
   private fallers: Faller[] = [];
@@ -216,7 +208,6 @@ export class PesaRushScene extends Phaser.Scene {
   private dispose(): void {
     if (this.disposed) return;
     this.disposed = true;
-    this.clearBasketItems();
     this.sfx.dispose();
     this.input.off(Phaser.Input.Events.POINTER_DOWN, this.onPointerInput, this);
     this.input.off(Phaser.Input.Events.POINTER_MOVE, this.onPointerInput, this);
@@ -415,7 +406,6 @@ export class PesaRushScene extends Phaser.Scene {
     this.spawnTimer = 200;
     this.stateP1 = createInitialState(this.cfg.lives);
     this.stateP2 = createInitialState(this.cfg.lives);
-    this.clearBasketItems();
     this.sfx.play("go");
     this.floatText(W / 2, H / 2 - 80, "GO!", this.accent, 120);
     this.refreshHud();
@@ -525,21 +515,6 @@ export class PesaRushScene extends Phaser.Scene {
     this.zoneP2.x = this.basketP2.x;
     this.basketP2Pulse = Math.max(0, this.basketP2Pulse - dt * 5);
     this.basketP2.setScale(1 + this.basketP2Pulse * 0.1, 1 - this.basketP2Pulse * 0.08);
-
-    // Sync collected items inside Player 1 & 2 baskets
-    const p1ScaleX = 1 + this.basketP1Pulse * 0.1;
-    const p1ScaleY = 1 - this.basketP1Pulse * 0.08;
-    for (const item of this.basketItemsP1) {
-      item.sprite.x = this.basketP1.x + item.offsetX * p1ScaleX;
-      item.sprite.y = this.basketP1.y + item.offsetY * p1ScaleY;
-    }
-
-    const p2ScaleX = 1 + this.basketP2Pulse * 0.1;
-    const p2ScaleY = 1 - this.basketP2Pulse * 0.08;
-    for (const item of this.basketItemsP2) {
-      item.sprite.x = this.basketP2.x + item.offsetX * p2ScaleX;
-      item.sprite.y = this.basketP2.y + item.offsetY * p2ScaleY;
-    }
   }
 
   private updateCountdown(dt: number): void {
@@ -676,8 +651,6 @@ export class PesaRushScene extends Phaser.Scene {
     this.release(f);
 
     if (def.kind === "good") {
-      const textureKey = f.sprite.texture.key;
-      this.addCollectedItemToBasket(isP1, textureKey, x, f.sprite.y);
       const color = resolveColor(def.color, this.theme);
       this.burst(x, zone.topY, hexToNumber(color), def.id === "golden" ? 30 : 14);
       const label = res.multiplier > 1 ? `+${res.delta} x${res.multiplier}` : `+${res.delta}`;
@@ -694,59 +667,7 @@ export class PesaRushScene extends Phaser.Scene {
     this.refreshHud();
   }
 
-  private addCollectedItemToBasket(isP1: boolean, textureKey: string, startX: number, startY: number): void {
-    const basket = isP1 ? this.basketP1 : this.basketP2;
-    const items = isP1 ? this.basketItemsP1 : this.basketItemsP2;
 
-    // Keep up to 14 mini items inside the basket bowl
-    if (items.length >= 14) {
-      const oldest = items.shift();
-      if (oldest) {
-        this.tweens.add({
-          targets: oldest.sprite,
-          alpha: 0,
-          scale: 0,
-          duration: 150,
-          onComplete: () => oldest.sprite.destroy(),
-        });
-      }
-    }
-
-    // Offset inside basket rim bowl area
-    const offsetX = (Math.random() - 0.5) * (BASKET_W * 0.55);
-    const offsetY = -BASKET_H * 0.12 + (Math.random() - 0.5) * (BASKET_H * 0.22);
-    const rotation = (Math.random() - 0.5) * 0.6;
-
-    const itemSprite = this.add.image(startX, startY, textureKey)
-      .setDepth(11)
-      .setDisplaySize(34, 34)
-      .setRotation(rotation);
-
-    const basketItem: BasketItem = {
-      sprite: itemSprite,
-      offsetX,
-      offsetY,
-      rotation,
-    };
-
-    items.push(basketItem);
-
-    // Drop item smoothly into basket
-    this.tweens.add({
-      targets: itemSprite,
-      x: basket.x + offsetX,
-      y: basket.y + offsetY,
-      duration: 160,
-      ease: "Cubic.out",
-    });
-  }
-
-  private clearBasketItems(): void {
-    for (const item of this.basketItemsP1) item.sprite.destroy();
-    for (const item of this.basketItemsP2) item.sprite.destroy();
-    this.basketItemsP1 = [];
-    this.basketItemsP2 = [];
-  }
 
   private handleMiss(f: Faller): void {
     const def = f.def;
